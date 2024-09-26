@@ -133,17 +133,20 @@ public class AccountTriggerHandler implements TriggerHandler{
                 
                 
                 // Itérer sur les IDs des contacts
-                for (Id contactId : contactIdsToInactivate) {
-                    // Créer un mappage pour chaque contact
-                    Map<String, Object> contactData = new Map<String, Object>();
-                    contactData.put('is_active', false); // Met à jour le statut d'activité
-                    contactData.put('id', contactId); // Ajoute l'ID du contact
-                    
-                    
-                    // Ajouter le mappage à la liste du payload
-                    payloadList.add(contactData);
-                }
+                if(!contactIdsToInactivate.isEmpty()){
+
                 
+                   for (Id contactId : contactIdsToInactivate) {
+                      // Créer un mappage pour chaque contact
+                      Map<String, Object> contactData = new Map<String, Object>();
+                      contactData.put('is_active', false); // Met à jour le statut d'activité
+                      contactData.put('id', contactId); // Ajoute l'ID du contact
+                    
+                    
+                      // Ajouter le mappage à la liste du payload
+                      payloadList.add(contactData);
+                   }
+                }
                 
                 // Synchronisation avec l'API si la payloadLis n'est pas vide
                 if (!payloadList.isEmpty()) {
