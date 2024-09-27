@@ -175,6 +175,7 @@ public class AccountTriggerHandler implements TriggerHandler{
                     } catch (Exception e) {
                         System.debug('Erreur inattendue: ' + e.getMessage());
                         
+                        
                     }
                 }
                 
