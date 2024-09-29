@@ -3,9 +3,8 @@ public class PayloadLogger {
     // Méthode pour enregistrer le payload échoué
     
     public static void saveFailedPayload(String serializedPayload, String httpBody, integer statusCode) {
-        System.Debug('appelle la future method');
-        Integer randomNumber = Math.mod(Math.abs(Crypto.getRandomInteger()), 1000000); 
-        
+        // Remplire avec les donnée correspondantes
+        Integer randomNumber = Math.mod(Math.abs(Crypto.getRandomInteger()), 1000000);         
         FailedPayload__c failedPayload = new FailedPayload__c();
         failedPayload.Name = 'Payload_' + randomNumber;
         
