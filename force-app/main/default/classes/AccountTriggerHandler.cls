@@ -102,7 +102,7 @@ public class AccountTriggerHandler implements TriggerHandler{
                         }
                     }
                     
-                    // Si tous les comptes sont annulés, ajoutez l'ID du contact au Set et à la liste pour traitement
+                    // Si tous les comptes sont annulés, ajouter le contact à une liste et à un payload
                     if (allAccountsCanceled) {
                         contactIdsToInactivate.add(contactId);
                         Contact cont = new Contact(
@@ -111,6 +111,11 @@ public class AccountTriggerHandler implements TriggerHandler{
                         );
                         contactsToUpdate.add(cont);
                         
+                        // Ajouter le contact au payload  
+                        Map<String, Object> contactData = new Map<String, Object>();
+                        contactData.put('is_active', false); // Met à jour le statut d'activité
+                        contactData.put('id', contactId); // Ajoute l'ID du contact                                                                        
+                        payloadList.add(contactData);                        
                         
                     }
                 }
@@ -128,32 +133,14 @@ public class AccountTriggerHandler implements TriggerHandler{
                     }
                 } else {
                     System.debug('Pas de contact à mettre à jour');
+                    
                 }
                 
                 
-                
-                // Itérer sur les IDs des contacts
-                if(!contactIdsToInactivate.isEmpty()){
-
-                
-                   for (Id contactId : contactIdsToInactivate) {
-                      // Créer un mappage pour chaque contact
-                      Map<String, Object> contactData = new Map<String, Object>();
-                      contactData.put('is_active', false); // Met à jour le statut d'activité
-                      contactData.put('id', contactId); // Ajoute l'ID du contact
-                    
-                    
-                      // Ajouter le mappage à la liste du payload
-                      payloadList.add(contactData);
-                   }
-                }
                 
                 // Synchronisation avec l'API si la payloadLis n'est pas vide
                 if (!payloadList.isEmpty()) {
-                    
-                    
-                    
-                    
+                                   
                     ApiService apiJob = new ApiService(
                         apiConfig.Endpoint__c,
                         httpMethod,
@@ -163,19 +150,8 @@ public class AccountTriggerHandler implements TriggerHandler{
                     
                     try {
                         System.enqueueJob(apiJob);
-                    } catch (ApiNotFoundException e) {
-                        System.debug('Erreur 404: ' + e.getMessage());
-                        
-                    } catch (ApiUnauthorizedException e) {
-                        System.debug('Erreur 401: ' + e.getMessage());
-                        
-                    } catch (ApiBadRequestException e) {
-                        System.debug('Erreur 400: ' + e.getMessage());
-                        
                     } catch (Exception e) {
-                        System.debug('Erreur inattendue: ' + e.getMessage());
-                        
-                        
+                        System.debug('Erreur survenue: ' + e.getMessage());                                               
                     }
                 }
                 

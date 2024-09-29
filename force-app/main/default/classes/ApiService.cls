@@ -1,9 +1,10 @@
 public class ApiService implements Queueable, Database.AllowsCallouts {
-        
+    
     private String endpoint;
     private String httpMethod;
     private List<Map<String, Object>> payload;
     private String authToken;
+
     
     // Constructeur pour initialiser les paramètres
     public ApiService(String endpoint, String httpMethod, List<Map<String, Object>> payload, String authToken) {
@@ -12,22 +13,45 @@ public class ApiService implements Queueable, Database.AllowsCallouts {
         this.payload = payload;
         this.authToken = authToken;
     }
+      
     
     // Méthode exécutable pour l'appel de l'API
     public void execute(QueueableContext context) {
+        
         if (!payload.isEmpty()) {
             Http http = new Http();
             HttpRequest request = new HttpRequest();
             request.setEndpoint(endpoint);
             request.setMethod(httpMethod);
             request.setHeader('Authorization', authToken);
-            request.setHeader('Content-Type', 'application/json');
+            request.setHeader('Content-Type', 'application/json');         
             request.setBody(JSON.serialize(payload));
+          
+            
             System.debug('le payload serializé : '+JSON.serialize(payload));
             
             HttpResponse response = http.send(request);
-            // Gérer les réponses de l'API
-            handleApiResponse(response);
+        
+            try {
+                handleApiResponse(response);
+            }catch (ApiNotFoundException e){
+                             
+                    PayloadLogger.saveFailedPayload(JSON.serialize(payload), e.getMessage(), response.getStatusCode()) ;                                 
+                
+            }catch (ApiUnauthorizedException e){
+                              
+                    PayloadLogger.saveFailedPayload(JSON.serialize(payload), e.getMessage(), response.getStatusCode()) ;             
+                
+            }catch (ApiBadRequestException e){
+                     
+                    PayloadLogger.saveFailedPayload(JSON.serialize(payload), e.getMessage(), response.getStatusCode()) ;               
+                
+            } catch (Exception e) {
+                
+                System.debug('Une erreur est survenue:  '+ e);
+                
+                
+            } 
         }
     }
     
@@ -35,10 +59,10 @@ public class ApiService implements Queueable, Database.AllowsCallouts {
     private void handleApiResponse(HttpResponse response) {
         Integer statusCode = response.getStatusCode();
         String responseBody = response.getBody(); 
-        
+   
         if (statusCode == 200) {
-            System.debug('Contacts synchronisés avec succès');
-        } else if (statusCode == 404) {
+            System.debug('Contacts synchronisés avec succès');        
+        } else if (statusCode == 404) {            
             throw new ApiNotFoundException('La ressource demandée n\'a pas été trouvée. Réponse API : '  + responseBody);
         } else if (statusCode == 401) {
             throw new ApiUnauthorizedException('Authorization échouée : token d\'auth non fourni ou invalide. Réponse API : ' + responseBody);
@@ -46,10 +70,5 @@ public class ApiService implements Queueable, Database.AllowsCallouts {
             throw new ApiBadRequestException('Erreur dans les paramètres : le corps doit être un tableau d\'objets avec deux propriétés id:string et is_active:boolean. Réponse API : ' + responseBody);
         }
     }
-    
-    
-    
-    
-    
-    
+      
 }
